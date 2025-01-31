@@ -1,0 +1,7 @@
+{
+	"name": "x4build",
+	"version": "1.6.0",
+	"main": "x4build.mjs",
+	"author": "ecochard",
+	"license": "MIT"
+}
