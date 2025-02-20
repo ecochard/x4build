@@ -1,7 +1,17 @@
 {
 	"name": "x4build",
-	"version": "1.6.0",
-	"main": "x4build.mjs",
+	"version": "1.6.3",
+	"main": "x4build.js",
 	"author": "ecochard",
-	"license": "MIT"
+	"license": "MIT",
+	"type": "module",
+	"repository": {
+		"url": "https://github.com/ecochard/x4build"
+	},
+	"dependencies": {
+		"chalk": "^5.4.1",
+		"esbuild": "^0.24.2",
+		"watcher": "^2.3.1",
+		"ws": "^8.18.0"
+	}
 }
