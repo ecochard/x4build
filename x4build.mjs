@@ -4,7 +4,7 @@
 * @file build.mjs
 * @author Etienne Cochard 
 * @copyright (c) 2024 R-libre ingenierie, all rights reserved.
-* @version 1.6.5
+* @version 1.6.6
 **/
 
 import * as fs from "node:fs"
@@ -20,7 +20,7 @@ import Watcher from "watcher"
 
 //import { hostname } from 'node:os'
 
-let VERSION = "1.6.5"
+let VERSION = "1.6.6"
 let PORT = 3000;
 let IP = "127.0.0.1";
 
@@ -258,35 +258,40 @@ function watch( ) {
 	else if( httpMode=="http" ) {
 		server = http.createServer( {} );
 	}
+	
 
-	server.listen( PORT+10, IP, ( ) => {
-		console.log( chalk.white("hmr server is running on port "+(PORT+10)) );
-	} );
+	let sendClientMessage = ( msg ) => { }
 
-	const wsServer = new WebSocketServer({
-		server,
-	});
+	if( httpMode ) {
+		server.listen( PORT+10, IP, ( ) => {
+			console.log( chalk.white("hmr server is running on port "+(PORT+10)) );
+		} );
 
-	// all connected clients (1)
-	const clients = [];
-
-	wsServer.on('connection', (ws) => {
-		clients.push(ws);
-
-		wsServer.on('error', (err) => {
+		const wsServer = new WebSocketServer({
+			server,
 		});
 
-		wsServer.on('message', function message(data) {
-			console.log('received: %s', data);
-		});
-	});
+		// all connected clients (1)
+		const clients = [];
 
-	const sendClientMessage = (msg) => {
-		clients.forEach(ws => {
-			ws.send(msg);
+		wsServer.on('connection', (ws) => {
+			clients.push(ws);
+
+			wsServer.on('error', (err) => {
+			});
+
+			wsServer.on('message', function message(data) {
+				console.log('received: %s', data);
+			});
 		});
+
+		sendClientMessage = (msg) => {
+			clients.forEach(ws => {
+				ws.send(msg);
+			});
+		}
 	}
-
+	
 	// file watcher ------------------------------------------
 	const selfPath = url.fileURLToPath(import.meta.url);
 	const cPath = process.cwd();
