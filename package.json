@@ -1,6 +1,6 @@
 {
 	"name": "x4build",
-	"version": "1.6.5",
+	"version": "1.6.11",
 	"main": "x4build.js",
 	"author": "ecochard",
 	"license": "MIT",
@@ -13,8 +13,10 @@
 	},
 	"dependencies": {
 		"chalk": "^5.4.1",
-		"esbuild": "^0.24.2",
-		"watcher": "^2.3.1",
-		"ws": "^8.18.0"
+		"esbuild": "^0.25",
+		"esbuild-sass-plugin": "^3.3",
+		"sass-embedded": "^1.71",
+		"watcher": "^2.3",
+		"ws": "^8.18"
 	}
 }

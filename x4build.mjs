@@ -3,8 +3,8 @@
 /**
 * @file build.mjs
 * @author Etienne Cochard 
-* @copyright (c) 2024 R-libre ingenierie, all rights reserved.
-* @version 1.6.6
+* @copyright (c) 2025 R-libre ingenierie, all rights reserved.
+* @version 1.6.11
 **/
 
 import * as fs from "node:fs"
@@ -20,9 +20,10 @@ import Watcher from "watcher"
 
 //import { hostname } from 'node:os'
 
-let VERSION = "1.6.6"
-let PORT = 3000;
-let IP = "127.0.0.1";
+let VERSION = "1.6.11"
+
+let PORT 	= 3000;
+let IP 		= "127.0.0.1";
 
 console.log( chalk.green(`\n\n-- X4Build ${VERSION} -------------------`) );
 
@@ -38,6 +39,19 @@ function check_ip( argv ) {
 			return true;
 		}	
 	})
+}
+
+function check_hmr_port( argv ) {
+	const re =  /--hmr(=(?<port>(\d+)))?/
+
+	for( const arg of argv ) {
+		const m = re.exec( arg );
+		if( m ) {
+			return [ true, m.groups.port ? parseInt(m.groups.port) : 3010 ];
+		}	
+	}
+
+	return [false,null];
 }
 
 const help = process.argv.some( a => a=="--help" );
@@ -60,10 +74,10 @@ if( help ) {
 }
 
 const releaseMode = process.argv.some(a => a == "--release")
-const hmrMode = process.argv.some(a => a == "--hmr")		// hot module replacement
-const watchMode = process.argv.some(a => a == "--watch" )	// watch modifications
-const serveMode = process.argv.some(a => a == "--serve")	// watch modifications
-const cjsMode = process.argv.some(a => a == "--cjs")		// output mode 
+const watchMode = process.argv.some(a => a == "--watch" )		// watch modifications
+const serveMode = process.argv.some(a => a == "--serve")		// watch modifications
+const cjsMode = process.argv.some(a => a == "--cjs")			// output mode 
+const [hmrMode,hmrPort] = check_hmr_port( process.argv )		// hot module replacement
 
 check_ip( process.argv );
 
@@ -78,6 +92,9 @@ let https_options = {};
 if( httpMode ) {
 	httpMode = httpMode.substring(2);
 }
+else {
+	httpMode = "http";
+} 
 
 let certDir;
 if( httpMode=="https" ) {
@@ -122,7 +139,7 @@ if( outDir ) {
 }
 
 console.log( chalk.green("    release mode ..."), chalk.white(releaseMode ) );
-console.log( chalk.green("    hmr ............"), chalk.white(hmrMode ) );
+console.log( chalk.green("    hmr ............"), chalk.white( `${hmrMode} -- port ${hmrPort}` ) );
 console.log( chalk.green("    watching ......."), chalk.white(watchMode ) );
 console.log( chalk.green("    serve files ...."), chalk.white(serveMode ) );
 console.log( chalk.green("    output dir ....."), chalk.white(settings.outdir ) );
@@ -150,7 +167,7 @@ if( httpMode ) {
 const js_hmr = ` // X4 Hot Module Replacement v1.2
 {
 	setTimeout( () => {
-		const ws = new WebSocket( \`${httpMode=="http" ? "ws:" : "wss:"}//\${window.location.hostname}:${PORT+10}\`, "hmr" );
+		const ws = new WebSocket( \`${httpMode=="http" ? "ws:" : "wss:"}//\${window.location.hostname}:${hmrPort}\`, "hmr" );
 		ws.onmessage = ( ev ) => {
 			if( ev.data=="reload-css" ) {
 				const gen_id = Date.now( );
@@ -262,9 +279,9 @@ function watch( ) {
 
 	let sendClientMessage = ( msg ) => { }
 
-	if( httpMode ) {
-		server.listen( PORT+10, IP, ( ) => {
-			console.log( chalk.white("hmr server is running on port "+(PORT+10)) );
+	if( httpMode && hmrMode ) {
+		server.listen( hmrPort, IP, ( ) => {
+			console.log( chalk.white("hmr server is running on port "+hmrPort) );
 		} );
 
 		const wsServer = new WebSocketServer({
@@ -295,6 +312,7 @@ function watch( ) {
 	// file watcher ------------------------------------------
 	const selfPath = url.fileURLToPath(import.meta.url);
 	const cPath = process.cwd();
+	const outDirName = path.basename( settings.outdir );
 
 	const watcher = new Watcher("./", {
 		recursive: true,
@@ -305,7 +323,7 @@ function watch( ) {
 				targetPath = path.normalize(targetPath);
 			}
 
-			if (targetPath.startsWith("bin") || targetPath.startsWith("node_modules") ) {
+			if (targetPath.startsWith(outDirName) || targetPath.startsWith("node_modules") ) {
 				//console.log("skip watch", targetPath);
 				return true;
 			}
