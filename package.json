@@ -1,21 +1,20 @@
 {
 	"name": "x4build",
-	"version": "1.6.11",
-	"main": "x4build.js",
+	"version": "1.6.15",
+	"main": "x4build.mjs",
 	"author": "ecochard",
 	"license": "MIT",
 	"type": "module",
 	"repository": {
-		"url": "https://github.com/ecochard/x4build"
+		"url": "git+https://github.com/ecochard/x4build.git"
 	},
 	"bin": {
 		"x4build": "x4build.mjs"
 	},
 	"dependencies": {
-		"chalk": "^5.4.1",
-		"esbuild": "^0.25",
-		"esbuild-sass-plugin": "^3.3",
-		"sass-embedded": "^1.71",
+		"esbuild": "0.27.4",
+		"esbuild-plugin-less": "^1.3.37",
+		"esbuild-sass-plugin": "^3.7",
 		"watcher": "^2.3",
 		"ws": "^8.18"
 	}

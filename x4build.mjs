@@ -4,7 +4,9 @@
 * @file build.mjs
 * @author Etienne Cochard 
 * @copyright (c) 2025 R-libre ingenierie, all rights reserved.
-* @version 1.6.11
+* @version 1.6.14
+
+* npm login
 **/
 
 import * as fs from "node:fs"
@@ -13,19 +15,31 @@ import * as url from "node:url"
 import * as http from "node:http"
 import * as https from "node:https"
 
-import chalk from "chalk"
 import esbuild from "esbuild"
 import { WebSocketServer } from 'ws';
 import Watcher from "watcher"
+import { styleText } from 'node:util'
 
 //import { hostname } from 'node:os'
 
-let VERSION = "1.6.11"
+let VERSION = "1.6.14"
 
-let PORT 	= 3000;
+let PORT 	= Math.round( Math.random( ) * 32000 ) + 1000;
 let IP 		= "127.0.0.1";
 
-console.log( chalk.green(`\n\n-- X4Build ${VERSION} -------------------`) );
+
+class Styler {
+	green( ...x ) { return styleText( "green", x.map(x=>x+'').join(' ') ); }
+	white( ...x ) { return styleText( "white", x.map(x=>x+'').join(' ') ); }
+	cyan( ...x )  { return styleText( "cyan",  x.map(x=>x+'').join(' ') ); }
+	red( ...x )   { return styleText( "red",  x.map(x=>x+'').join(' ') ); }
+	bgRed( ...x ) { return styleText( "bgRed", x.map(x=>x+'').join(' ') ); }
+};
+
+const styler = new Styler( );
+
+
+console.log( styler.green(`\n\n-- X4Build ${VERSION} -------------------`) );
 
 
 function check_ip( argv ) {
@@ -47,7 +61,7 @@ function check_hmr_port( argv ) {
 	for( const arg of argv ) {
 		const m = re.exec( arg );
 		if( m ) {
-			return [ true, m.groups.port ? parseInt(m.groups.port) : 3010 ];
+			return [ true, m.groups.port ? parseInt(m.groups.port) : PORT+1 ];
 		}	
 	}
 
@@ -68,6 +82,7 @@ if( help ) {
     --http ............ http mode, build for web
 	--https ........... https mode, build for web
     --cert=xx ......... certificate path (include filename without extension) must contain .crt & .key
+	--css=xx .......... xx = less or scss, scss by default 
 ` );
 
 	process.exit( 0 );
@@ -77,6 +92,7 @@ const releaseMode = process.argv.some(a => a == "--release")
 const watchMode = process.argv.some(a => a == "--watch" )		// watch modifications
 const serveMode = process.argv.some(a => a == "--serve")		// watch modifications
 const cjsMode = process.argv.some(a => a == "--cjs")			// output mode 
+
 const [hmrMode,hmrPort] = check_hmr_port( process.argv )		// hot module replacement
 
 check_ip( process.argv );
@@ -84,6 +100,11 @@ check_ip( process.argv );
 let outDir = process.argv.find( a => a.startsWith("--outdir=") );
 if( outDir ) {
 	outDir = outDir.substring(9);
+}
+
+let cssMode = process.argv.find( a => a.startsWith("--css=") );
+if( cssMode ) {
+	cssMode = outDir.substring(6);
 }
 
 let httpMode = process.argv.find( a => a.startsWith("--http") );
@@ -129,39 +150,61 @@ const def_settings = {
 	"entryPoints": ["src/main.ts"],
 	"outdir": "./bin",
 	"copy": [],
+	"externals": [],
+	"define": {},
 };
 
 const pkg_settings = readPackage();
 const settings = { ...def_settings, ...pkg_settings.x4build };
 
+settings.define = {
+	...settings.define,
+	"DEBUG_MODE": releaseMode ? "false" : "true",
+}
+
 if( outDir ) {
 	settings.outdir = outDir;
 }
 
-console.log( chalk.green("    release mode ..."), chalk.white(releaseMode ) );
-console.log( chalk.green("    hmr ............"), chalk.white( `${hmrMode} -- port ${hmrPort}` ) );
-console.log( chalk.green("    watching ......."), chalk.white(watchMode ) );
-console.log( chalk.green("    serve files ...."), chalk.white(serveMode ) );
-console.log( chalk.green("    output dir ....."), chalk.white(settings.outdir ) );
-console.log( chalk.green("    entry point ...."), chalk.white("[", settings.entryPoints?.join(', '), ']' ) );
-console.log( chalk.green("    externals ......"), chalk.white("[", settings.external?.join(', '), ']' ) );
-console.log( chalk.green("    copying ........"), chalk.white("[", settings.copy?.map( x => `${x.from} -> ${x.to}` ).join(', '), ']' ) );
-console.log( chalk.green("    http mode ......"), chalk.white(httpMode ) );
-console.log( chalk.green("    cert path ......"), chalk.white(certDir ) );
-console.log( chalk.green("----------------------------------\n") );
+console.log( styler.green("    release mode ..."), styler.white( releaseMode ) );
+console.log( styler.green("    hmr ............"), styler.white( `${hmrMode} -- port ${hmrPort}` ) );
+console.log( styler.green("    watching ......."), styler.white( watchMode ) );
+console.log( styler.green("    serve files ...."), styler.white( `${serveMode} -- url ${httpMode}://${IP}:${PORT}`) );
+console.log( styler.green("    output dir ....."), styler.white( settings.outdir ) );
+console.log( styler.green("    entry point ...."), styler.white("[", settings.entryPoints?.join(', ') ?? 'src/main.ts', ']' ) );
+console.log( styler.green("    externals ......"), styler.white("[", settings.externals?.join(', '), ']' ) );
+console.log( styler.green("    define ........."), styler.white("[", settings.define ? Object.keys(settings.define).join(', ') : '', ']' ) );
+console.log( styler.green("    copying ........"), styler.white("[", settings.copy?.map( x => `${x.from} -> ${x.to}` ).join(', '), ']' ) );
+console.log( styler.green("    http mode ......"), styler.white( httpMode ) );
+console.log( styler.green("    cert path ......"), styler.white( certDir ?? '-no cert given-' ) );
+console.log( styler.green("----------------------------------\n") );
 
 const plugins = [];
 	
 
 if( httpMode ) {
-	const { sassPlugin } = await import( "esbuild-sass-plugin" );
-	
-	let sass_plugin = sassPlugin( {
-		type: "css",
-		filter: /\.scss$/,
-	});
 
-	plugins.push( sass_plugin );
+	if( cssMode=="less" ) {
+		const { lessLoader } = await import( "esbuild-plugin-less" );
+		let less_plugin = lessLoader( {
+			type: "css",
+			filter: /\.less$/,
+		});
+		plugins.push( less_plugin );
+	}
+	else {
+		if( cssMode && cssMode!="scss" ) {
+			console.log( styler.red("unknown css mode: "+cssMode) );
+		}
+
+		const { sassPlugin } = await import( "esbuild-sass-plugin" );
+		let sass_plugin = sassPlugin( {
+			type: "css",
+			filter: /\.scss$/,
+		});
+
+		plugins.push( sass_plugin );
+	}
 }
 
 const js_hmr = ` // X4 Hot Module Replacement v1.2
@@ -215,7 +258,7 @@ const pad = ( x, len ) => {
 
 async function build() {
 
-	console.log(chalk.cyan(`building (${buildcnt++})...`));
+	console.log(styler.cyan(`building (${buildcnt++})...`));
 
 	const now = new Date( );
 	const gen_version = `${pad(now.getFullYear()-2000,2)}${pad(now.getMonth()+1,2)}${pad(now.getDate(),2)}`;
@@ -233,20 +276,23 @@ async function build() {
 			platform: "node",
 			format: cjsMode ? "cjs" : "iife",
 			minify: releaseMode,
+			external: settings.externals,
 			plugins,
 			assetNames: "assets/[name]-[hash]",
 			loader: {
 				".svg": "dataurl",
 				".jpg": "file",
 				".png": "file",
+				".ttf": "file",
 				".woff": "file",
 				".woff2": "file",
 			},
 			define: {
+				...settings.define,
 				"DEBUG_MODE": releaseMode ? "false" : "true",
 				"VERSION_ID": gen_version
-			}
-
+			},
+			...settings.esbuild
 		}
 
 		if (!releaseMode) {
@@ -260,7 +306,7 @@ async function build() {
 		await esbuild.build(options);
 	}
 	catch (e) {
-		console.error(chalk.bgRed.white("build failure, waiting for correction"));
+		console.error(styler.bgRed(styler.white("build failure, waiting for correction")) );
 		console.log(e.message);
 	}
 }
@@ -281,7 +327,7 @@ function watch( ) {
 
 	if( httpMode && hmrMode ) {
 		server.listen( hmrPort, IP, ( ) => {
-			console.log( chalk.white("hmr server is running on port "+hmrPort) );
+			console.log( styler.white("hmr server is running on port "+hmrPort) );
 		} );
 
 		const wsServer = new WebSocketServer({
@@ -471,7 +517,7 @@ function serve() {
 	});
 
 	server.listen(PORT, IP);
-	console.log( chalk.white( `listening on ${httpMode}://${IP}:${PORT}`) );
+	console.log( styler.white( `listening on ${httpMode}://${IP}:${PORT}`) );
 }
 
 build();
