@@ -1,6 +1,6 @@
 {
 	"name": "x4build",
-	"version": "1.6.15",
+	"version": "1.6.17",
 	"main": "x4build.mjs",
 	"author": "ecochard",
 	"license": "MIT",
@@ -12,10 +12,13 @@
 		"x4build": "x4build.mjs"
 	},
 	"dependencies": {
-		"esbuild": "0.27.4",
+		"esbuild": "0.28",
 		"esbuild-plugin-less": "^1.3.37",
 		"esbuild-sass-plugin": "^3.7",
 		"watcher": "^2.3",
 		"ws": "^8.18"
+	},
+	"allowScripts": {
+		"esbuild@0.28.2": true
 	}
 }

@@ -4,7 +4,7 @@
 * @file build.mjs
 * @author Etienne Cochard 
 * @copyright (c) 2025 R-libre ingenierie, all rights reserved.
-* @version 1.6.14
+* @version 1.6.17
 
 * npm login
 **/
@@ -22,7 +22,7 @@ import { styleText } from 'node:util'
 
 //import { hostname } from 'node:os'
 
-let VERSION = "1.6.14"
+let VERSION = "1.6.17"
 
 let PORT 	= Math.round( Math.random( ) * 32000 ) + 1000;
 let IP 		= "127.0.0.1";
