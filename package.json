@@ -1,12 +1,12 @@
 {
 	"name": "x4build",
-	"version": "1.6.17",
+	"version": "1.6.20",
 	"main": "x4build.mjs",
 	"author": "ecochard",
 	"license": "MIT",
 	"type": "module",
 	"repository": {
-		"url": "git+https://github.com/ecochard/x4build.git"
+		"url": "git+https://github.com/rlibre/x4build.git"
 	},
 	"bin": {
 		"x4build": "x4build.mjs"
