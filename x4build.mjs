@@ -258,8 +258,6 @@ const pad = ( x, len ) => {
 
 async function build() {
 
-	console.log(styler.cyan(`building (${buildcnt++})...`));
-
 	const now = new Date( );
 	const gen_version = `${pad(now.getFullYear()-2000,2)}${pad(now.getMonth()+1,2)}${pad(now.getDate(),2)}`;
 
@@ -304,6 +302,12 @@ async function build() {
 		}
 
 		await esbuild.build(options);
+
+        if( buildcnt && (buildcnt%10)==0 ) {
+            await esbuild.stop( );  // cleanup process
+        }
+
+        console.log(styler.cyan(`build ${buildcnt++}:${Date.now()-now}ms.`));
 	}
 	catch (e) {
 		console.error(styler.bgRed(styler.white("build failure, waiting for correction")) );
