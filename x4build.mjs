@@ -4,7 +4,7 @@
 * @file build.mjs
 * @author Etienne Cochard 
 * @copyright (c) 2025 R-libre ingenierie, all rights reserved.
-* @version 1.6.22
+* @version 1.6.23
 
 * npm login
 **/
@@ -22,7 +22,7 @@ import { styleText } from 'node:util'
 
 //import { hostname } from 'node:os'
 
-let VERSION = "1.6.22"
+let VERSION = "1.6.23"
 let PORT 	= Math.round( Math.random( ) * 32000 ) + 1000;
 let IP 		= "127.0.0.1";
 
@@ -40,6 +40,17 @@ const styler = new Styler( );
 
 console.log( styler.green(`\n\n-- X4Build ${VERSION} -------------------`) );
 
+function resolveVars( input ) {
+    return input.replaceAll( /\$(\w+)/g, ( placeholder, name ) => {
+        const value = process.env[name];
+        if( value === undefined ) {
+            console.warn( "unknown variable", name )
+            return placeholder;
+        }
+
+        return value;
+    } );
+}
 
 function check_ip( argv ) {
 	const re = /--ip=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:(\d+))?/
@@ -120,6 +131,7 @@ let certDir;
 if( httpMode=="https" ) {
 	certDir = process.argv.find( a => a.startsWith("--cert=") );
 	if( certDir ) {
+        certDir = resolveVars( certDir );
 		certDir = certDir.substring(7);
 	}
 	else {
@@ -127,8 +139,14 @@ if( httpMode=="https" ) {
 		process.exit( -1 );
 	}
 
-	https_options.cert = fs.readFileSync( certDir+".crt", "utf-8" );
-	https_options.key = fs.readFileSync( certDir+".key", "utf-8" );
+    try {
+        https_options.cert = fs.readFileSync( certDir+".crt", "utf-8" );
+        https_options.key = fs.readFileSync( certDir+".key", "utf-8" );
+    }
+    catch {
+        console.error( "cannot file cert. files")
+        process.exit( -1 );
+    }
 }
 
 function readPackage() {

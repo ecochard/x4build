@@ -1,6 +1,6 @@
 {
 	"name": "x4build",
-	"version": "1.6.22",
+	"version": "1.6.23",
 	"main": "x4build.mjs",
 	"author": "ecochard",
 	"license": "MIT",
