@@ -15,13 +15,20 @@ export function findRunnableOutput(config, metafile) {
     if (config.dev.run === false)
         return null;
 
-    if (typeof config.dev.run === "string")
-        return config.dev.run;
+    let entryPoint;
 
-    if (config.entryPoints.length !== 1)
-        throw new Error("x4build.dev.run is required when multiple entryPoints are configured");
+    if (typeof config.dev.run === "string") {
+        entryPoint = config.dev.run;
 
-    const entryPoint = config.entryPoints[0];
+        if (!config.entryPoints.some((entry) => samePath(entry, entryPoint)))
+            throw new Error(`dev.run must reference one of entryPoints: '${config.dev.run}'`);
+    }
+    else {
+        if (config.entryPoints.length !== 1)
+            throw new Error("dev.run is required when multiple entryPoints are configured");
+
+        entryPoint = config.entryPoints[0];
+    }
     for (const [output, meta] of Object.entries(metafile?.outputs ?? {})) {
         if (!meta.entryPoint)
             continue;
