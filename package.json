@@ -1,24 +1,33 @@
 {
-	"name": "x4build",
-	"version": "1.6.23",
-	"main": "x4build.mjs",
-	"author": "ecochard",
-	"license": "MIT",
-	"type": "module",
-	"repository": {
-		"url": "git+https://github.com/ecochard/x4build.git"
-	},
-	"bin": {
-		"x4build": "x4build.mjs"
-	},
-	"dependencies": {
-		"esbuild": "0.28",
-		"esbuild-plugin-less": "^1.3.37",
-		"esbuild-sass-plugin": "^3.7",
-		"watcher": "^2.3",
-		"ws": "^8.18"
-	},
-	"allowScripts": {
-		"esbuild@0.28.2": true
-	}
+  "name": "x4build",
+  "version": "2.0.0",
+  "description": "Small esbuild-based builder for X4/Node/TypeScript projects",
+  "type": "module",
+  "main": "x4build.mjs",
+  "bin": {
+    "x4build": "./x4build.mjs"
+  },
+  "files": [
+    "x4build.mjs",
+    "cli",
+    "README.md",
+    "LICENSE",
+    "x4.config.example.json"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "author": "ecochard",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ecochard/x4build.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "esbuild": "0.28"
+  }
 }
+

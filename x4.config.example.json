@@ -1,0 +1,15 @@
+{
+  "entryPoints": ["src/main.ts"],
+  "outdir": "dist",
+  "external": [],
+  "define": {},
+  "copy": [],
+  "dev": {
+    "nodeArgs": ["--enable-source-maps"],
+    "args": [],
+    "watchDelay": 100
+  },
+  "esbuild": {
+    "target": "node22"
+  }
+}
